@@ -1,0 +1,108 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+
+env:
+  NIGHTLY-BRANCH: "dev-nightly-release"
+
+jobs:
+  release:
+    runs-on: ubuntu-22.04
+    name: Release an Updated Version
+    env:
+      GITHUB_CONTEXT: ${{ toJson(github) }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Compile
+        run: |
+          npm i -g @vercel/ncc
+          ncc build index.js --license licenses.txt
+
+      - name: Release needed
+        id: needs_release
+        run: |
+          if [ -n "$(git status --porcelain dist)" ]; then
+            echo "NR=true" >> $GITHUB_OUTPUT
+          else
+            echo "NR=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Configure git
+        if: steps.needs_release.NR == true
+        run : |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Compose Release Tag
+        id: tags
+        if: steps.needs_release.NR == true
+        run: |          
+          TIMESTAMP=$(git show -s --format=%at $SHA)
+          DEV_TAG=dev-$TIMESTAMP
+          
+          BASE_RELEASE_TAG="v0."
+          REPO=$(echo "$GITHUB_CONTEXT" | jq -r '.repository')
+          LATEST_RELEASE=$(jq -r '.[0] | .tag_name' <<< $(curl --silent https://api.github.com/repos/$REPO/releases))
+          if [ -n "$LATEST_RELEASE" ]; then
+            # if latest release tag is v0.1, this extracts the `1` from it then increments it.
+            VER="${LATEST_RELEASE#*.}"
+            VER=$((VER + 1))
+          else
+            VER="1"
+          fi
+          
+          RELEASE_TAG=v0.$VER
+          
+          echo "SHA: $SHA"
+          echo "DEV_TAG: $DEV_TAG"
+          echo "RELEASE_TAG: $RELEASE_TAG"
+          echo "SHA=$SHA" >> $GITHUB_OUTPUT
+          echo "DEV_TAG=$DEV_TAG" >> $GITHUB_OUTPUT
+          echo "RELEASE_TAG=$RELEASE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Commit compiled version
+        id: commit
+        if: steps.needs_release.NR == true
+        run: |
+          if [ ${{ github.ref }} == "refs/heads/main" ]; then
+            BRANCH="main"
+          elif [ ${{ github.ref }} == "refs/heads/dev" ]; then
+            BRANCH=${{ env.NIGHTLY-BRANCH }}
+          else
+            echo "Unsupported branch."
+            exit 1
+          fi
+          
+          git switch -C $BRANCH
+          git add --force dist/*
+          git commit -m "Add compiled js file [Invoker ${{ steps.tags.outputs.SHA }}]."
+
+      - name: Publish Dev Tag
+        if: github.ref == 'refs/heads/dev' && steps.needs_release.NR == true
+        run: |
+          BRANCH=${{ env.NIGHTLY-BRANCH }}
+          git tag -a -m ${{ steps.tags.outputs.DEV_TAG }} ${{ steps.tags.outputs.DEV_TAG }}
+          git push --set-upstream origin $BRANCH --force --follow-tags
+
+      - name: Release
+        if: github.ref == 'refs/heads/main' && steps.needs_release.NR == true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git push --set-upstream origin main --force
+          TAG=${{ steps.tags.outputs.RELEASE_TAG }}
+          REPO=$(echo "$GITHUB_CONTEXT" | jq -r '.repository')
+          gh release create $TAG --repo "$REPO" --title "Release $TAG" --generate-notes

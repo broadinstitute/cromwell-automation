@@ -1,0 +1,28 @@
+name: Compile Test
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+
+jobs:
+  compile_action:
+    runs-on: ubuntu-22.04
+    name: Compile
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+      - name: Install Dependencies
+        run: npm install
+      - name: Test Compile
+        run: |
+          npm i -g @vercel/ncc
+          ncc build index.js --license licenses.txt

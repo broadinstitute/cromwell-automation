@@ -1,0 +1,47 @@
+name: 'Cromwell Automation TEST0011'
+description: 'Automates the submission and monitoring of WDL workflows to a Cromwell server.'
+branding:
+  icon: 'cloud'
+  color: 'blue'
+inputs:
+  subcommand:
+    description: Specifies the task that the action should perform, and its value can be either of the following.
+    required: false
+    default: synchronous
+  azure_storage_account_name:
+    description: Sets the storage account name used by the Cromwell on Azure instance.
+    required: true
+  azure_storage_container_name:
+    description: Sets the Azure container name under the given storage account that Cromwell on Azure instance uses.
+    required: true
+  azure_storage_inputs_container_name:
+    description: Sets the Azure container name that will be used to store the files used for submitting a workflow to Cromwell on Azure.
+    required: true
+  azure_storage_blob_name:
+    description: Sets the name of the blob under the set `azure_storage_account_name/azure_storage_container_name` that Cromwell on Azure listens for new submissions.
+    required: false
+    default: 'new'
+  azure_storage_metadata_container_name:
+    description: Sets the container name that contains the metadata of the completed tasks.
+    required: false
+    default: 'outputs'
+  workflow_path:
+    description: Sets the local path of the workflow to be tested.
+    required: true
+  workflow_inputs_path:
+    description: Sets the local path of a file in `JSON` format that contains the inputs of the workflow to be tested.
+    required: true
+  workflow_options_path:
+    description: Sets the local path to a file in `JSON` format that contains the Cromwell options for running the workflow.
+    required: false
+    default: null
+  workflow_dependencies_path:
+    description: Sets the local path to a file in `ZIP` format that contains all the dependencies of the workflow to be tested.
+    required: true
+  workflow_id:
+    description: Sets the UUID of the workflow. This option is used when `subcommand = monitor` or `subcommand = metadata`.
+    required: false
+    default: null
+runs:
+  using: 'node20'
+  main: 'dist/index.js'

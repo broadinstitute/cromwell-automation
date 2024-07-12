@@ -1,0 +1,58 @@
+name: Run Test
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+
+jobs:
+  compile_action:
+    runs-on: ubuntu-22.04
+    name: Compile
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+      - name: Install Dependencies
+        run: npm install
+      - name: Test Compile
+        run: |
+          npm i -g @vercel/ncc
+          ncc build index.js --license licenses.txt
+
+  run_action:
+    runs-on: ubuntu-22.04
+    name: Run
+    environment: CoA
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+      - name: Install Dependencies
+        run: npm install
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Test Run
+        env:
+          INPUT_AZURE_STORAGE_ACCOUNT_NAME: ${{ vars.AZURE_STORAGE_ACCOUNT_NAME }}
+          INPUT_AZURE_STORAGE_CONTAINER_NAME: ${{ vars.AZURE_STORAGE_CONTAINER_NAME }}
+          INPUT_AZURE_STORAGE_INPUTS_CONTAINER_NAME: ${{ vars.AZURE_STORAGE_INPUTS_CONTAINER_NAME }}
+          INPUT_AZURE_STORAGE_BLOB_NAME: ${{ vars.AZURE_STORAGE_BLOB_NAME }}
+        run: |
+          node tests/test.js
