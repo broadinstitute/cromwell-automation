@@ -3,6 +3,15 @@ const fs = require("fs");
 const path = require("path");
 const core = require("@actions/core");
 
+/**
+ * Asynchronously downloads a blob from Azure storage to a local filename.
+ *
+ * @async
+ * @function downloadFromBlobAsync
+ * @param {string} localFilename            The local filename of the blob.
+ * @param {string} blobName                 The blob name in Azure Storage.
+ * @param {ContainerClient} containerClient The Azure Storage container client.
+ */
 async function downloadFromBlobAsync(localFilename, blobName, containerClient) {
     try {
         const blockBlobClient = containerClient.getBlockBlobClient(blobName);

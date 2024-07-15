@@ -2,6 +2,11 @@ const path = require('path');
 const core = require('@actions/core');
 const fs = require('fs');
 
+/**
+ * Asynchronously uploads a given local file to an Azure blob.
+ * @param {string} localFilename                The local file to be uploaded to Azure storage.
+ * @param {ContainerClient} containerClient     Azure storage container client.
+ */
 async function uploadToBlobAsync(localFilename, containerClient) {
     try {
         const blobName = path.basename(localFilename);

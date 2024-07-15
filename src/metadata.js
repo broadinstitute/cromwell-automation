@@ -1,5 +1,12 @@
 const download = require('./download');
 
+/**
+ * Asynchronously downloads the metadata file of a submission with the given UUID. 
+ * 
+ * @param {string} localFilename                The filename of the local file where the metadata will be saved.
+ * @param {string} clientWorkflowId             The UUID of the workflow submission whose metadata should be downloaded.
+ * @param {ContainerClient} containerClient     The Azure storage container client.
+ */
 async function getMetadataAsync(localFilename, clientWorkflowId, containerClient) {
     try {
         let blobItem = null;

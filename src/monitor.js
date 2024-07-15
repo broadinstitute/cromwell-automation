@@ -1,5 +1,12 @@
 const core = require('@actions/core');
 
+/**
+ * Asynchronously monitors the execution status of a given workflow submission, 
+ * and it fails or succeeds depending on the execution statuss.
+ * 
+ * @param {ContainerClient} containerClient     Azure storage container client.
+ * @param {string} clientWorkflowId             The UUID of the workflow submission to monitor.
+ */
 async function monitorAsync(containerClient, clientWorkflowId) {
     const failedBlobPrefix = `failed/${clientWorkflowId}`;
     const succeededBlobPrefix = `succeeded/${clientWorkflowId}`;

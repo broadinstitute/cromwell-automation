@@ -1,7 +1,7 @@
 const { exec } = require('child_process');
 
 process.env['INPUT_SUBCOMMAND'] = 'synchronous';
-//process.env['INPUT_AZURE_STORAGE_ACCOUNT_NAME'] = 'cromwell7379410456f0';
+//process.env['INPUT_AZURE_STORAGE_ACCOUNT_NAME'] = '...';
 //process.env['INPUT_AZURE_STORAGE_CONTAINER_NAME'] = 'workflows';
 //process.env['INPUT_AZURE_STORAGE_INPUTS_CONTAINER_NAME'] = 'tests-inputs';
 //process.env['INPUT_AZURE_STORAGE_BLOB_NAME'] = 'new';
