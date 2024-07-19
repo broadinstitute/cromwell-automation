@@ -1,4 +1,4 @@
-name: 'Cromwell Automation TEST0011'
+name: 'Cromwell Automation'
 description: 'Automates the submission and monitoring of WDL workflows to a Cromwell server.'
 branding:
   icon: 'cloud'
